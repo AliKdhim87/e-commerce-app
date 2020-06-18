@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Form,
   Input,
@@ -11,6 +11,7 @@ import {
 } from 'semantic-ui-react';
 import axios from 'axios';
 import baseUrl from '../utils/baseUrl';
+import catchErrors from '../utils/catchErrors';
 function CreateProduct() {
   const [product, setProduct] = useState({
     name: '',
@@ -21,6 +22,13 @@ function CreateProduct() {
   const [mediaPreview, setMediaPreview] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [disabled, setDisabled] = useState(true);
+  const [error, setError] = useState('');
+  const { name, price, media, description } = product;
+  useEffect(() => {
+    const isProduct = Object.values(product).every((el) => Boolean(el));
+    isProduct ? setDisabled(false) : setDisabled(true);
+  }, [product]);
   const handleChange = (e) => {
     if (e.target.name === 'media') {
       setProduct({ ...product, media: e.target.files[0] });
@@ -29,7 +37,6 @@ function CreateProduct() {
       setProduct({ ...product, [e.target.name]: e.target.value });
     }
   };
-  const { name, price, media, description } = product;
 
   const handleImageUpload = async () => {
     const data = new FormData();
@@ -47,27 +54,39 @@ function CreateProduct() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    const mediaUrl = await handleImageUpload();
-    const url = `${baseUrl}/api/product`;
-    const { name, price, media, description } = product;
-    const payload = { name, price, description, mediaUrl };
-    const response = await axios.post(url, payload);
-    console.log(response);
-    setLoading(false);
-    setProduct({
-      name: '',
-      price: '',
-      media: '',
-      description: '',
-    });
-    setSuccess(true);
+    try {
+      e.preventDefault();
+      setLoading(true);
+      const mediaUrl = await handleImageUpload();
+      const url = `${baseUrl}/api/product`;
+      const { name, price, description } = product;
+      const payload = { name: '', price, description, mediaUrl };
+      const response = await axios.post(url, payload);
+      console.log(response);
+
+      setProduct({
+        name: '',
+        price: '',
+        media: '',
+        description: '',
+      });
+      setSuccess(true);
+    } catch (error) {
+      catchErrors(error, setError);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
-      <Form loading={loading} success={success} onSubmit={handleSubmit}>
+      <Form
+        loading={loading}
+        error={Boolean(error)}
+        success={success}
+        onSubmit={handleSubmit}
+      >
+        <Message error header='Oops!' content={error} />
         <Message
           success
           icon='check'
@@ -119,7 +138,7 @@ function CreateProduct() {
         />
         <Form.Field
           control={Button}
-          disabled={loading}
+          disabled={disabled || loading}
           color='blue'
           icon='pencil alternate'
           content='Submit'

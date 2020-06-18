@@ -29,24 +29,29 @@ async function handleGetRequest(req, res) {
         .json({ error: 'There is not product for the provide id.' });
     res.status(200).json(product);
   } catch (error) {
-    res.status(500).json({ error: 'Somthing went wrong!' });
+    res.status(500).json({ error: 'something went wrong!' });
   }
 }
 
 async function handlePostRequest(req, res) {
   const { name, price, description, mediaUrl } = req.body;
-  if (!name || !price || !description || !mediaUrl) {
-    return res.status(422).send('Product missing one or more fields');
-  }
-  const product = new Product({
-    name,
-    price,
-    description,
-    mediaUrl,
-  });
+  try {
+    if (!name || !price || !description || !mediaUrl) {
+      return res.status(422).send('Product missing one or more fields');
+    }
+    const product = new Product({
+      name,
+      price,
+      description,
+      mediaUrl,
+    });
 
-  await product.save();
-  res.status(201).json(product);
+    await product.save();
+    res.status(201).json(product);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send('Something went wrong!');
+  }
 }
 
 async function handleDeleteRequest(req, res) {
@@ -57,6 +62,6 @@ async function handleDeleteRequest(req, res) {
 
     res.status(204).json();
   } catch (error) {
-    res.status(500).json({ error: 'Somthing went wrong!' });
+    res.status(500).json({ error: 'something went wrong!' });
   }
 }

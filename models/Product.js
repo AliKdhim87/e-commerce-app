@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
-import shortid from "shortid";
-const ProductsSckema = new mongoose.Schema({
+import mongoose from 'mongoose';
+import shortid from 'shortid';
+const ProductSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -29,4 +29,4 @@ const ProductsSckema = new mongoose.Schema({
   },
 });
 export default mongoose.models.Product ||
-  mongoose.model("Product", ProductsSckema);
+  mongoose.model('Product', ProductSchema);
